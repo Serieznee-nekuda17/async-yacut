@@ -3,7 +3,7 @@ from settings import Config
 from flask import flash, render_template, url_for, redirect
 
 from .forms import FileUploadForm, ShortLinkForm
-from yacut.models import URLMap
+from .models import URLMap
 from .utils import get_unique_short_id
 from .ya_disk import upload_file_to_yadisk
 from . import db, app
