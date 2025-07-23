@@ -1,59 +1,55 @@
 import asyncio
-from settings import Config
-from flask import flash, render_template, url_for, redirect
 
+from flask import flash, redirect, render_template, url_for
+
+from settings import Config
+
+from . import app, db
+from .error_handlers import InvalidAPIUsage
 from .forms import FileUploadForm, ShortLinkForm
 from .models import URLMap
-from .utils import get_unique_short_id
 from .ya_disk import upload_file_to_yadisk
-from . import db, app
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index_view():
+    """Главная страница с формой для создания короткой ссылки."""
     form = ShortLinkForm()
     if form.validate_on_submit():
         custom_id = form.custom_id.data
         original_link = form.original_link.data
 
-        if custom_id and custom_id.lower() == 'files':
+        try:
+            url_map = URLMap.create(
+                original=original_link, custom_id=custom_id)
+        except InvalidAPIUsage:
             flash('Предложенный вариант короткой ссылки уже существует.')
             return render_template('index.html', form=form)
 
-        if custom_id:
-            if URLMap.query.filter_by(short=custom_id).first():
-                flash('Предложенный вариант короткой ссылки уже существует.')
-                return render_template('index.html', form=form)
-            short_id = custom_id
-        else:
-            short_id = get_unique_short_id()
-
-        url_map = URLMap(original=original_link, short=short_id)
-        db.session.add(url_map)
-        db.session.commit()
-
         return render_template(
-            'index.html', form=form,
+            'index.html',
+            form=form,
             short_link=url_for(
-                'short_redirect', short=short_id, _external=True
-            )
+                'short_redirect', short=url_map.short, _external=True)
         )
     return render_template('index.html', form=form)
 
 
 @app.route('/<short>')
 def short_redirect(short):
+    """Перенаправляет с короткой ссылки на оригинальный URL."""
     url_map = URLMap.query.filter_by(short=short).first_or_404()
     return redirect(url_map.original)
 
 
 @app.route('/files', methods=['GET', 'POST'])
 def files():
+    """Страница для загрузки файлов и получения коротких ссылок на них."""
     form = FileUploadForm()
     files_info = []
     if form.validate_on_submit():
         for file_storage in form.files.data:
-            short_id = get_unique_short_id()
+            short_id = URLMap.get_unique_short_id()
             filename = file_storage.filename
             public_url = asyncio.run(
                 upload_file_to_yadisk(
