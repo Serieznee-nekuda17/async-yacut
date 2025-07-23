@@ -1,7 +1,7 @@
 import random
 import string
 
-from .models import URLMap
+from yacut.models import URLMap
 from . import db
 
 

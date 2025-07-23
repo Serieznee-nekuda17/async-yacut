@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
 
-from yacut_app.models import URLMap
+from yacut.models import URLMap
 
 
 def test_fields(_app):

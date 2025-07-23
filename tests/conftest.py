@@ -27,7 +27,7 @@ pytest_plugins = [
 
 try:
     from yacut_app import app, db
-    from yacut_app.models import URLMap  # noqa
+    from yacut.models import URLMap  # noqa
 except NameError as exc:
     raise AssertionError(
         'При попытке импорта объекта приложения вознакло исключение: '

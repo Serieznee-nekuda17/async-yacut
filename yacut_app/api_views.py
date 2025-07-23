@@ -1,6 +1,6 @@
 import re
 from flask import request, jsonify
-from .models import URLMap
+from yacut.models import URLMap
 from .error_handlers import InvalidAPIUsage
 from .utils import get_unique_short_id
 from . import app, db
