@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="container my-5 px-4">
+  <h2 class="text-center mb-4">Загрузите файлы и получите на них короткую ссылку</h2>
+  <form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.files(class="form-control") }}
+      {% for error in form.files.errors %}
+        <div class="error">{{ error }}</div>
+      {% endfor %}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info mt-3">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if files %}
+  <table class="table mt-4">
+    <thead>
+      <tr>
+        <th>Имя файла</th>
+        <th>Короткая ссылка</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      <tr>
+        <td>{{ file.filename }}</td>
+        <td>
+          <a href="{{ url_for('short_redirect', short=file.short) }}">
+            {{ url_for('short_redirect', short=file.short, _external=True) }}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

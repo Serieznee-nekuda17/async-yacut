@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container my-5 text-center">
+  <h1 class="display-4 text-danger">Ошибка 500</h1>
+  <p class="lead">Что-то пошло не так на сервере.</p>
+  <a href="{{ url_for('index_view') }}" class="btn btn-outline-primary mt-3">Вернуться на главную</a>
+</section>
+{% endblock %}
