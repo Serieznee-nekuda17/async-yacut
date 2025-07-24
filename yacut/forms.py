@@ -17,7 +17,10 @@ class ShortLinkForm(FlaskForm):
         'Ваш вариант короткой ссылки',
         validators=[
             Optional(),
-            Length(max=MAX_CUSTOM_ID_LENGTH, message='Не более 16 символов'),
+            Length(
+                max=MAX_CUSTOM_ID_LENGTH,
+                message=f'Не более {MAX_CUSTOM_ID_LENGTH} символов'
+            ),
             Regexp(CUSTOM_ID_REGEX, message='Только буквы и цифры')
         ]
     )

@@ -1,7 +1,6 @@
 import asyncio
-
 from flask import abort
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template
 
 from settings import Config
 from . import app, db
@@ -15,24 +14,23 @@ from .ya_disk import upload_file_to_yadisk
 def index_view():
     """Главная страница с формой для создания короткой ссылки."""
     form = ShortLinkForm()
-    if form.validate_on_submit():
-        custom_id = form.custom_id.data
-        original_link = form.original_link.data
+    if not form.validate_on_submit():
+        return render_template('index.html', form=form)
 
-        try:
-            url_map = URLMap.create(
-                original=original_link, custom_id=custom_id)
-        except InvalidAPIUsage:
-            flash('Предложенный вариант короткой ссылки уже существует.')
-            return render_template('index.html', form=form)
+    custom_id = form.custom_id.data
+    original_link = form.original_link.data
 
-        return render_template(
-            'index.html',
-            form=form,
-            short_link=url_for(
-                'short_redirect', short=url_map.short, _external=True)
-        )
-    return render_template('index.html', form=form)
+    try:
+        url_map = URLMap.create(original=original_link, custom_id=custom_id)
+    except InvalidAPIUsage:
+        flash('Предложенный вариант короткой ссылки уже существует.')
+        return render_template('index.html', form=form)
+
+    return render_template(
+        'index.html',
+        form=form,
+        short_link=url_map.to_dict()['short_link']
+    )
 
 
 @app.route('/<short>')
@@ -58,7 +56,7 @@ def files():
                     file_storage, Config.DISK_TOKEN, filename)
             )
             url_map = URLMap(
-                original=public_url, short=short_id, filename=filename
+                original=public_url, short=short_id
             )
             db.session.add(url_map)
             files_info.append(
@@ -70,6 +68,4 @@ def files():
             )
         db.session.commit()
         flash('Файлы успешно загружены!')
-    files_list = URLMap.query.filter(
-        URLMap.filename.isnot(None)).all()
-    return render_template('files.html', form=form, files=files_list)
+    return render_template('files.html', form=form, files=files_info)

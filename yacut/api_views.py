@@ -5,7 +5,6 @@ from flask import request, jsonify
 
 from . import app
 from .constants import (
-    FORBIDDEN_NAMES,
     MIN_CUSTOM_ID_LENGTH,
     MAX_CUSTOM_ID_LENGTH,
     CUSTOM_ID_REGEX
@@ -28,20 +27,11 @@ def create_id():
         raise InvalidAPIUsage('"url" является обязательным полем!')
 
     if custom_id:
-        if custom_id.lower() in FORBIDDEN_NAMES:
-            raise InvalidAPIUsage(
-                'Предложенный вариант короткой ссылки уже существует.'
-            )
-
         if not (
             MIN_CUSTOM_ID_LENGTH <= len(custom_id) <= MAX_CUSTOM_ID_LENGTH
         ) or not re.fullmatch(CUSTOM_ID_REGEX, custom_id):
             raise InvalidAPIUsage(
                 'Указано недопустимое имя для короткой ссылки'
-            )
-        if URLMap.get_by_short_id(custom_id):
-            raise InvalidAPIUsage(
-                'Предложенный вариант короткой ссылки уже существует.'
             )
 
     url_map = URLMap.create(original=url, custom_id=custom_id)

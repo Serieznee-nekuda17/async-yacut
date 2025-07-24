@@ -9,7 +9,6 @@ from .constants import (
     FORBIDDEN_NAMES,
     MAX_ORIGINAL_LENGTH,
     MAX_SHORT_LENGTH,
-    MAX_FILENAME_LENGTH
 )
 from .error_handlers import InvalidAPIUsage
 
@@ -19,7 +18,6 @@ class URLMap(db.Model):
     original = db.Column(db.String(MAX_ORIGINAL_LENGTH), nullable=False)
     short = db.Column(db.String(MAX_SHORT_LENGTH), unique=True, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    filename = db.Column(db.String(MAX_FILENAME_LENGTH))
 
     def to_dict(self):
         return {
@@ -29,39 +27,35 @@ class URLMap(db.Model):
         }
 
     def from_dict(self, data: dict):
-        for field in ['original', 'short', 'filename']:
+        for field in ['original', 'short']:
             if field in data:
                 setattr(self, field, data[field])
-
-    @staticmethod
-    def get_unique_short_id(length=6):
-        chars = string.ascii_letters + string.digits
-        while True:
-            short_id = ''.join(random.choices(chars, k=length))
-            if (short_id not in FORBIDDEN_NAMES and
-                    not URLMap.query.filter_by(short=short_id).first()):
-                return short_id
 
     @staticmethod
     def get_by_short_id(short_id):
         return URLMap.query.filter_by(short=short_id).first()
 
     @staticmethod
-    def create(original, custom_id=None, filename=None):
+    def get_unique_short_id(length=6):
+        chars = string.ascii_letters + string.digits
+        while True:
+            short_id = ''.join(random.choices(chars, k=length))
+            if (short_id not in FORBIDDEN_NAMES
+                    and not URLMap.get_by_short_id(short_id)):
+                return short_id
+
+    @staticmethod
+    def create(original, custom_id=None):
         short_id = custom_id or URLMap.get_unique_short_id()
 
         if custom_id:
-            if custom_id.lower() in FORBIDDEN_NAMES:
+            if (custom_id.lower() in FORBIDDEN_NAMES
+                    or URLMap.get_by_short_id(short_id)):
                 raise InvalidAPIUsage(
                     'Предложенный вариант короткой ссылки уже существует.'
                 )
 
-        if URLMap.get_by_short_id(short_id):
-            raise InvalidAPIUsage(
-                'Предложенный вариант короткой ссылки уже существует.'
-            )
-
-        url_map = URLMap(original=original, short=short_id, filename=filename)
+        url_map = URLMap(original=original, short=short_id)
         db.session.add(url_map)
         db.session.commit()
         return url_map
