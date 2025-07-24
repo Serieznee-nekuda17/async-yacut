@@ -2,6 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import MultipleFileField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp, URL
 
+from .constants import MAX_CUSTOM_ID_LENGTH, CUSTOM_ID_REGEX
+
 
 class ShortLinkForm(FlaskForm):
     original_link = StringField(
@@ -15,8 +17,8 @@ class ShortLinkForm(FlaskForm):
         'Ваш вариант короткой ссылки',
         validators=[
             Optional(),
-            Length(max=16, message='Не более 16 символов'),
-            Regexp(r'^[a-zA-Z0-9]+$', message='Только буквы и цифры')
+            Length(max=MAX_CUSTOM_ID_LENGTH, message='Не более 16 символов'),
+            Regexp(CUSTOM_ID_REGEX, message='Только буквы и цифры')
         ]
     )
     submit = SubmitField('Создать')

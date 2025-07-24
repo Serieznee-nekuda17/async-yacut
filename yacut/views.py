@@ -1,9 +1,9 @@
 import asyncio
 
+from flask import abort
 from flask import flash, redirect, render_template, url_for
 
 from settings import Config
-
 from . import app, db
 from .error_handlers import InvalidAPIUsage
 from .forms import FileUploadForm, ShortLinkForm
@@ -38,7 +38,9 @@ def index_view():
 @app.route('/<short>')
 def short_redirect(short):
     """Перенаправляет с короткой ссылки на оригинальный URL."""
-    url_map = URLMap.query.filter_by(short=short).first_or_404()
+    url_map = URLMap.get_by_short_id(short)
+    if url_map is None:
+        abort(404)
     return redirect(url_map.original)
 
 
